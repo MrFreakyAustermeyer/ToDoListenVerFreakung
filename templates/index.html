@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo-Listen-Verwaltung</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Todo-Listen</h1>
+
+        <div class="add-form">
+            <input type="text" id="new-list-name" placeholder="Neue Liste...">
+            <button onclick="addList()">+ Liste</button>
+        </div>
+
+        <div id="lists">
+            {% for list in todo_lists %}
+            <div class="list-card" id="list-{{ list.id }}">
+                <div class="list-header">
+                    <h2>{{ list.name }}</h2>
+                    <button class="btn-delete" onclick="deleteList('{{ list.id }}')" title="Liste löschen">✕</button>
+                </div>
+                <ul class="entries">
+                    {% for entry in todos %}
+                    {% if entry.list_id == list.id %}
+                    <li class="entry" id="entry-{{ entry.id }}">
+                        <div class="entry-content">
+                            <strong>{{ entry.name }}</strong>
+                            {% if entry.description %}
+                            <span class="entry-desc">{{ entry.description }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="entry-actions">
+                            <button class="btn-edit" onclick="editEntry('{{ entry.id }}')" title="Bearbeiten">✎</button>
+                            <button class="btn-delete" onclick="deleteEntry('{{ entry.id }}')" title="Löschen">✕</button>
+                        </div>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+                <div class="add-entry-form">
+                    <input type="text" placeholder="Neuer Eintrag..." id="entry-name-{{ list.id }}">
+                    <button onclick="addEntry('{{ list.id }}')">+</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        const API = '';
+
+        function addList() {
+            const input = document.getElementById('new-list-name');
+            const name = input.value.trim();
+            if (!name) return;
+            fetch(API + '/todo-list', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: name})
+            }).then(r => { if (r.ok) location.reload(); });
+            input.value = '';
+        }
+
+        function deleteList(listId) {
+            if (!confirm('Liste wirklich löschen?')) return;
+            fetch(API + '/todo-list/' + listId, {method: 'DELETE'})
+                .then(() => location.reload());
+        }
+
+        function addEntry(listId) {
+            const input = document.getElementById('entry-name-' + listId);
+            const name = input.value.trim();
+            if (!name) return;
+            fetch(API + '/todo-list/' + listId, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: name, description: ''})
+            }).then(r => { if (r.ok) location.reload(); });
+            input.value = '';
+        }
+
+        function editEntry(entryId) {
+            const newName = prompt('Neuer Name:');
+            if (newName === null) return;
+            fetch(API + '/entry/' + entryId, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: newName})
+            }).then(r => { if (r.ok) location.reload(); });
+        }
+
+        function deleteEntry(entryId) {
+            if (!confirm('Eintrag wirklich löschen?')) return;
+            fetch(API + '/entry/' + entryId, {method: 'DELETE'})
+                .then(() => location.reload());
+        }
+
+        document.getElementById('new-list-name').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') addList();
+        });
+    </script>
+</body>
+</html>

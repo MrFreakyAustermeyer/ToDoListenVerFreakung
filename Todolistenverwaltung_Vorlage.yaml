@@ -1,0 +1,282 @@
+openapi: 3.0.1
+info:
+  title: Todo-Listen-Verwaltung
+  version: 0.2.0
+  description: REST-Schnittstelle zur Verwaltung von Todo-Listen und Einträgen
+servers:
+  - url: http://127.0.0.1:5000/
+
+tags:
+  - name: Listenverwaltung
+  - name: Eintragsverwaltung
+
+paths:
+  /todo-list:
+    post:
+      tags:
+        - Listenverwaltung
+      summary: Add new todo list
+      operationId: addList
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        "201":
+          description: List successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodoList"
+        "406":
+          description: Invalid data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "No valid name provided. Name must not be empty."
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "An unexpected server error occurred. Please try again later."
+
+  /todo-list/{list_id}:
+    get:
+      tags:
+        - Listenverwaltung
+      summary: Get all items from a list
+      operationId: getList
+      parameters:
+        - in: path
+          name: list_id
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: List items returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TodoEntry"
+        "404":
+          description: Invalid list id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "List with id '123e4567-e89b-12d3-a456-426614174000' not found."
+        "500":
+          description: Server error
+
+    delete:
+      tags:
+        - Listenverwaltung
+      summary: Delete a todo list
+      operationId: deleteList
+      parameters:
+        - in: path
+          name: list_id
+          schema:
+            type: string
+          required: true
+      responses:
+        "204":
+          description: List deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Todo list 'Groceries' has been successfully deleted."
+        "404":
+          description: List not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "List with id '123e4567-e89b-12d3-a456-426614174000' not found."
+        "500":
+          description: Server error
+
+    post:
+      tags:
+        - Eintragsverwaltung
+      summary: Add entry to a list
+      operationId: addEntry
+      parameters:
+        - in: path
+          name: list_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        "201":
+          description: Entry created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodoEntry"
+        "404":
+          description: Invalid list id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "List with id '123e4567-e89b-12d3-a456-426614174000' not found. No entry added."
+        "500":
+          description: Server error
+
+  /entry/{entry_id}:
+    patch:
+      tags:
+        - Eintragsverwaltung
+      summary: Update an entry
+      operationId: updateEntry
+      parameters:
+        - in: path
+          name: entry_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        "200":
+          description: Entry updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodoEntry"
+        "404":
+          description: Entry not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Entry with id '987fcdeb-51a2-3def-b456-789012345678' not found."
+        "406":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "No valid data provided. At least 'name' or 'description' must be given."
+        "500":
+          description: Server error
+
+    delete:
+      tags:
+        - Eintragsverwaltung
+      summary: Delete an entry
+      operationId: deleteEntry
+      parameters:
+        - in: path
+          name: entry_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Entry deleted 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Entry 'Buy milk' has been successfully deleted."
+        "404":
+          description: Entry not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Entry with id '987fcdeb-51a2-3def-b456-789012345678' not found."
+        "500":
+          description: Server error
+
+components:
+  schemas:
+    TodoList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+
+    TodoEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        user_id:
+          type: string
+          format: uuid
+        list_id:
+          type: string
+          format: uuid
