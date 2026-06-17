@@ -5,7 +5,7 @@ RUN pip install flask
 WORKDIR /app
 
 COPY TodoListManagement.py /app
-COPY template/ template/
+COPY templates/ templates/
 COPY static/ static/
 
 EXPOSE 5000
