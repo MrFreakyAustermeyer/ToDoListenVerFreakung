@@ -1,0 +1,12 @@
+FROM python:3.12
+
+RUN pip install flask
+
+WORKDIR /app
+
+COPY TodoListManagement.py /app
+
+EXPOSE 5000
+
+ENTRYPOINT ["python"]
+CMD ["TodoListManagement.py"]
